@@ -3,8 +3,10 @@
 namespace Modules\Blog\Http\Controllers\API;
 
 use App\Models\Article;
+use App\Transformers\ArticleTransformer;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use League\Fractal\Pagination\IlluminatePaginatorAdapter;
 
 class ArticleController extends Controller
 {
@@ -14,8 +16,13 @@ class ArticleController extends Controller
      */
     public function index()
     {
-        return Article::orderBy('created_at', 'desc')
+        $paginator = Article::orderBy('created_at', 'desc')
             ->paginate(10);
+
+        return fractal()
+            ->collection($paginator->getCollection(), new ArticleTransformer)
+            ->paginateWith(new IlluminatePaginatorAdapter($paginator))
+            ->respond();
     }
 
     /**
@@ -25,6 +32,10 @@ class ArticleController extends Controller
      */
     public function show($id)
     {
-        return Article::findOrFail($id);
+        $article = Article::findOrFail($id);
+
+        return fractal()
+            ->item($article, new ArticleTransformer)
+            ->respond();
     }
 }

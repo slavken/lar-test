@@ -3,10 +3,12 @@
 namespace Modules\Blog\Http\Controllers\API;
 
 use App\Models\Article;
+use App\Transformers\ArticleTransformer;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
+use League\Fractal\Pagination\IlluminatePaginatorAdapter;
 use Modules\Blog\Http\Requests\Article\StoreRequest;
 use Modules\Blog\Http\Requests\Article\UpdateRequest;
 
@@ -18,10 +20,15 @@ class UserArticleController extends Controller
      */
     public function index()
     {
-        return Auth::user()
+        $paginator = Auth::user()
             ->articles()
             ->orderBy('created_at', 'desc')
             ->paginate(10);
+
+        return fractal()
+            ->collection($paginator->getCollection(), new ArticleTransformer)
+            ->paginateWith(new IlluminatePaginatorAdapter($paginator))
+            ->respond();
     }
 
     /**
@@ -47,9 +54,13 @@ class UserArticleController extends Controller
      */
     public function show($id)
     {
-        return Auth::user()
+        $article = Auth::user()
             ->articles()
             ->findOrFail($id);
+
+        return fractal()
+            ->item($article, new ArticleTransformer)
+            ->respond();
     }
 
     /**

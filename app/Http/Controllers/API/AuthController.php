@@ -7,6 +7,7 @@ use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegistrationRequest;
 use App\Models\User;
 use App\Services\TokenService;
+use App\Transformers\UserTransformer;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
@@ -47,7 +48,9 @@ class AuthController extends Controller
     function me(Request $request)
     {
         if ($request->isMethod('get'))
-            return $request->user();
+            return fractal()
+                ->item($request->user(), new UserTransformer)
+                ->respond();
 
         $data = $request->validate([
             'name' => 'string|min:3',
@@ -57,7 +60,7 @@ class AuthController extends Controller
         $user = $request->user();
         $user->update($data);
 
-        return $user;
+        return response()->json(['message' => 'success']);
     }
 
     function logout(Request $request)
