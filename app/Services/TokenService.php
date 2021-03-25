@@ -43,8 +43,8 @@ class TokenService
     {
         $response = Http::asForm()->post(url('/oauth/token'), [
             'grant_type' => 'password',
-            'client_id' => Config::get('passport.personal_access_client.id'),
-            'client_secret' => Config::get('passport.personal_access_client.secret'),
+            'client_id' => env('PASSPORT_PASSWORD_GRANT_CLIENT_ID'),
+            'client_secret' => env('PASSPORT_PASSWORD_GRANT_CLIENT_SECRET'),
             'username' => $this->email,
             'password' => $this->password,
             'scope' => '',
