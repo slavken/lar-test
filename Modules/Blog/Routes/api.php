@@ -3,9 +3,6 @@
 use App\UseCases\RouteModule;
 use Illuminate\Support\Facades\Route;
 use Modules\Blog\Http\Controllers\API\ArticleController;
-use Modules\Blog\Http\Controllers\API\{
-    UserArticleController
-};
 
 /*
 |--------------------------------------------------------------------------
@@ -22,7 +19,7 @@ Route::prefix('blog-module')->middleware('module:blog')->group(function () {
     new RouteModule();
 
     Route::prefix('me')->middleware('auth:api')->group(function () {
-        Route::apiResource('articles', UserArticleController::class);
+        Route::apiResource('articles', '\Modules\Blog\Http\Controllers\API\UserArticleController');
     });
 
     Route::get('/articles', [ArticleController::class, 'index']);

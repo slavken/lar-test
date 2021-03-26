@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\API;
 
-use App\DTOs\OAuthDataDTO;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegistrationRequest;
 use App\Models\User;
@@ -16,7 +15,7 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    function login(LoginRequest $request)
+    function login(LoginRequest $request, TokenService $token)
     {
         $credentials = $request->only('email', 'password');
         $credentials['module'] = Config::get('module');
@@ -24,13 +23,11 @@ class AuthController extends Controller
         if (!Auth::attempt($credentials))
             return response()->json(['message' => 'Unauthenticated.'], 401);
 
-        $tokenService = new TokenService($request->email, $request->password);
-
-        return (new OAuthDataDTO($tokenService->tokenType(), $tokenService->expiresIn(), $tokenService->accessToken(), $tokenService->refreshToken()))
-            ->jsonSerialize();
+        $token->getToken($request);
+        return $token->toResponse();
     }
 
-    function registration(RegistrationRequest $request)
+    function registration(RegistrationRequest $request, TokenService $token)
     {
         User::create([
             'module' => Config::get('module'),
@@ -39,10 +36,8 @@ class AuthController extends Controller
             'password' => Hash::make($request->password)
         ]);
 
-        $tokenService = new TokenService($request->email, $request->password);
-
-        return (new OAuthDataDTO($tokenService->tokenType(), $tokenService->expiresIn(), $tokenService->accessToken(), $tokenService->refreshToken()))
-            ->jsonSerialize();
+        $token->getToken($request);
+        return $token->toResponse();
     }
 
     function me(Request $request)

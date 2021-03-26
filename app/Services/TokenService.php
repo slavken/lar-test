@@ -2,7 +2,8 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Config;
+use App\DTOs\OAuthDataDTO;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Http;
 
 class TokenService
@@ -11,12 +12,12 @@ class TokenService
     protected string $email;
     protected string $password;
 
-    function __construct(string $email, string $password)
+    function getToken(FormRequest $request)
     {
-        $this->email = $email;
-        $this->password = $password;
+        $this->email = $request->email;
+        $this->password = $request->password;
 
-        $this->response();
+        $this->fromResponse();
     }
 
     function tokenType()
@@ -39,7 +40,7 @@ class TokenService
         return $this->token['refresh_token'];
     }
 
-    function response()
+    function fromResponse()
     {
         $response = Http::asForm()->post(url('/oauth/token'), [
             'grant_type' => 'password',
@@ -51,5 +52,15 @@ class TokenService
         ]);
 
         $this->token = $response->json();
+    }
+
+    function toResponse()
+    {
+        return (new OAuthDataDTO(
+            $this->tokenType(),
+            $this->expiresIn(),
+            $this->accessToken(),
+            $this->refreshToken()
+        ))->jsonSerialize();
     }
 }
